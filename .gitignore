@@ -1,0 +1,6 @@
+Makefile-*
+Package-*
+build/
+debug/
+dist/
+private/
