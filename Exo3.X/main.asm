@@ -228,11 +228,11 @@ RES_VECT  CODE    0x0000            ; processor reset vector
     MOVF LEDs, 0
  
     MOVWF LATA ; Ecriture des bits sur les sorties
-    MOVWF LATC ; PORTA => 4 premières LEDs, PORTC => 4 dernières LEDs
+    MOVWF LATC ; PORTA => 4 premiï¿½res LEDs, PORTC => 4 derniï¿½res LEDs
     
-    COMF LEDs, 1 ; Inversion de l'output, puis mise du résultat dans l'output
+    COMF LEDs, 1 ; Inversion de l'output, puis mise du rï¿½sultat dans l'output
     
-    ; Ecriture du compteur à 3035
+    ; Ecriture du compteur ï¿½ 3035
     MOVLW 0xb  ; Partie haute
     MOVWF TMR0H
     MOVLW 0xdb ; Partie basse
@@ -251,19 +251,28 @@ RES_VECT  CODE    0x0000            ; processor reset vector
 MAIN_PROG CODE                      ; let linker place main program
 
 MAIN
+
+    MOVLW 0x01
+    MOVWF INTCON
+    CLRF INTCON2
+
+    MOVLW 0x48
+    MOVWF INCTCON3
+
+    BSF INTCON, GIE
  
     MOVLW b'01010010' ; Configuration de l'oscillateur
-	; 0 : mode Sleep lors de l'instruction SLEEP (inutilisé)
-	; 101 : fréquence de 4MHz (1M instructions / s)
+	; 0 : mode Sleep lors de l'instruction SLEEP (inutilisï¿½)
+	; 101 : frï¿½quence de 4MHz (1M instructions / s)
 	; 0 : Oscillateur interne
-	; 0 : inutilisé
-	; 1x : Bloc mémoire de l'oscillateur interne
+	; 0 : inutilisï¿½
+	; 1x : Bloc mï¿½moire de l'oscillateur interne
     MOVWF OSCCON
     
     MOVLW b'11110000'
     
     MOVF TRISA ; Configuration de TRISA et TRISC
-    MOVF TRISC ; 4 bits de poids fort à 0 => accès aux 4 leds
+    MOVF TRISC ; 4 bits de poids fort ï¿½ 0 => accï¿½s aux 4 leds
     
     MOVLW b'10000101' ; Configuration de TIMER0
 	; 1 : en marche
@@ -271,7 +280,7 @@ MAIN
 	; 0 : Horloge interne
 	; 0 : front montant
 	; 0 : utilisation du prescaler
-	; 101 : Prescaler à 64
+	; 101 : Prescaler ï¿½ 64
     MOVWF T0CON
     
     MOVLW 0xb  ; Valeur initiale du timer : 3035 = 0xbdb
@@ -280,11 +289,14 @@ MAIN
     MOVLW 0xdb ; Partie basse
     MOVWF TMR0L
     
-    MOVLW b'01010101' ; Output à écrire sur les ports
+    MOVLW b'01010101' ; Output ï¿½ ï¿½crire sur les ports
     MOVWF LEDs
     
 loop
-    
+    NOP
+    NOP
+    NOP
+    NOP
     GOTO loop ; Boucle infinie
 
     END
