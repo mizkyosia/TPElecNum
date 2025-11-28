@@ -214,31 +214,27 @@ RES_VECT  CODE    0x0000            ; processor reset vector
 ;
 ;----------------------------------PIC18's--------------------------------------
 ;
- ISRHV     CODE    0x0008
-     GOTO    HIGH_ISR
  ISRLV     CODE    0x0018
-     GOTO    LOW_ISR
-;
- ISRH      CODE                     ; let linker place high ISR routine
- HIGH_ISR
-     RETFIE  FAST
+     GOTO    ISR
 ;
  ISRL      CODE                     ; let linker place low ISR routine
- LOW_ISR
+ ISR
     MOVF LEDs, 0
  
     MOVWF LATA ; Ecriture des bits sur les sorties
-    MOVWF LATC ; PORTA => 4 premiï¿½res LEDs, PORTC => 4 derniï¿½res LEDs
+    MOVWF LATC ; PORTA => 4 premières LEDs, PORTC => 4 dernières LEDs
     
-    COMF LEDs, 1 ; Inversion de l'output, puis mise du rï¿½sultat dans l'output
+    COMF LEDs, 1 ; Inversion de l'output, puis mise du résultat dans l'output
     
-    ; Ecriture du compteur ï¿½ 3035
+    ; Ecriture du compteur à 3035
     MOVLW 0xb  ; Partie haute
     MOVWF TMR0H
     MOVLW 0xdb ; Partie basse
     MOVLW TMR0L
- 
-    RETFIE
+    
+    BCF INTCON, TMR0IF ; Remet l'event à 0
+    
+    RETFIE 1
 ;
 ;*******************************************************************************
 
@@ -251,15 +247,6 @@ RES_VECT  CODE    0x0000            ; processor reset vector
 MAIN_PROG CODE                      ; let linker place main program
 
 MAIN
-
-    MOVLW 0x01
-    MOVWF INTCON
-    CLRF INTCON2
-
-    MOVLW 0x48
-    MOVWF INCTCON3
-
-    BSF INTCON, GIE
  
     MOVLW b'01010010' ; Configuration de l'oscillateur
 	; 0 : mode Sleep lors de l'instruction SLEEP (inutilisï¿½)
@@ -269,18 +256,18 @@ MAIN
 	; 1x : Bloc mï¿½moire de l'oscillateur interne
     MOVWF OSCCON
     
-    MOVLW b'11110000'
+    MOVLW 0x0
     
-    MOVF TRISA ; Configuration de TRISA et TRISC
-    MOVF TRISC ; 4 bits de poids fort ï¿½ 0 => accï¿½s aux 4 leds
+    MOVWF TRISA ; Configuration de TRISA et TRISC
+    MOVWF TRISC ; 4 bits de poids fort ï¿½ 0 => accï¿½s aux 4 leds
     
-    MOVLW b'10000101' ; Configuration de TIMER0
+    MOVLW b'10000011' ; Configuration de TIMER0
 	; 1 : en marche
 	; 0 : sur 16 bits
 	; 0 : Horloge interne
 	; 0 : front montant
 	; 0 : utilisation du prescaler
-	; 101 : Prescaler ï¿½ 64
+	; 011 : Prescaler ï¿½ 16
     MOVWF T0CON
     
     MOVLW 0xb  ; Valeur initiale du timer : 3035 = 0xbdb
@@ -288,6 +275,9 @@ MAIN
     MOVWF TMR0H
     MOVLW 0xdb ; Partie basse
     MOVWF TMR0L
+    
+    BSF INTCON, GIE ; Met en route le timer
+    BSF INTCON, TMR0IE
     
     MOVLW b'01010101' ; Output ï¿½ ï¿½crire sur les ports
     MOVWF LEDs
