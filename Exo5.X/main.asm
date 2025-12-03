@@ -7,7 +7,7 @@
   CONFIG  IESO = OFF            ; Internal/External Oscillator Switchover bit (Oscillator Switchover mode disabled)
 
 ; CONFIG2L
-;  CONFIG  PWRTEN = OFF          ; Power-up Timer Enable bit (PWRT disabled)
+  CONFIG  PWRT = ON             ; Power-up Timer Enable bit (PWRT disabled)
   CONFIG  BOREN = SBORDIS       ; Brown-out Reset Enable bits (Brown-out Reset enabled in hardware only (SBOREN is disabled))
   CONFIG  BORV = 18             ; Brown Out Reset Voltage bits (VBOR set to 1.8 V nominal)
 
@@ -16,7 +16,7 @@
   CONFIG  WDTPS = 32768         ; Watchdog Timer Postscale Select bits (1:32768)
 
 ; CONFIG3H
-  CONFIG  CCP2MX = PORTC        ; CCP2 MUX bit (CCP2 input/output is multiplexed with RC1)
+  CONFIG  CCP2MX = PORTBE        ; CCP2 MUX bit (CCP2 input/output is multiplexed with RC1)
   CONFIG  PBADEN = ON           ; PORTB A/D Enable bit (PORTB<4:0> pins are configured as analog input channels on Reset)
   CONFIG  LPT1OSC = OFF         ; Low-Power Timer1 Oscillator Enable bit (Timer1 configured for higher power operation)
   CONFIG  HFOFST = ON           ; HFINTOSC Fast Start-up (HFINTOSC starts clocking the CPU without waiting for the oscillator to stablize.)
@@ -52,7 +52,7 @@
   CONFIG  EBTRB = OFF           ; Boot Block Table Read Protection bit (Boot Block (000000-0001FFh) not protected from table reads executed in other blocks)
   
   
-  INT_VAR UDATA_ACS
+ INT_VAR UDATA_ACS
     incr RES 1
     LEDs RES 1
 
@@ -73,7 +73,7 @@ MAIN_CODE
 	; 1x : Bloc mï¿½moire de l'oscillateur interne
     MOVWF OSCCON
     
-    BSF ANSEL, ANS4 ; Désactivation de l'input digital pour RA57
+    BSF ANSEL, ANS4 ; Désactivation de l'input digital pour RA5
     
     MOVLW b'00010001'
 	; xx : Non implémenté
@@ -91,11 +91,11 @@ MAIN_CODE
 	; 100 : Fosc / 4
     MOVWF ADCON2
     
-    MOVLW b'00000111' ; Configuration de TIMER0
+    MOVLW b'00000111' ; Configuration de TIMER2
 	; x : Non implémenté
 	; 0000 : Pas de postscale
 	; 1 : en marche
-	; 011 : Prescaler ï¿½ 16
+	; 11 : Prescaler ï¿½ 16
     MOVWF T2CON
     
     MOVLW 0xff
@@ -108,10 +108,14 @@ MAIN_CODE
     MOVWF CCP2CON
     
     BCF TRISB, RB3 ; Définit RB3 comme sortie
+    BCF ANSELH, RB3 ; Sortie analogique
     
     MOVLW b'11110000'
     
     MOVWF TRISA ; Configuration de TRISA et TRISC
+    MOVWF TRISC 
+    
+    CLRF CCPR2H
     
     loop
 	BSF ADCON0, GO ; Mise en route du convertisseur
@@ -121,6 +125,4 @@ MAIN_CODE
 	MOVFF ADRESH, CCPR2L ; Récupération des 8 bits les plus hauts
 	
 	BRA loop
-    
-
     END
