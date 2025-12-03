@@ -91,15 +91,15 @@ MAIN_CODE
 	; 100 : Fosc / 4
     MOVWF ADCON2
     
-    MOVLW b'00000100' ; Configuration de TIMER2
+    MOVLW b'00000111' ; Configuration de TIMER2
 	; x : Non implémenté
 	; 0000 : Pas de postscale
 	; 1 : en marche
-	; 00 : Prescaler *1
+	; 1x : Prescaler = 16
     MOVWF T2CON
     
-    MOVLW 0xff
-    MOVWF PR2 ; Pour obtenir une résolution maximale
+    MOVLW 0xbb
+    MOVWF PR2 ; Pour une période de 3ms
     
     MOVLW b'00001100'
 	; xx : Non implémenté
@@ -117,21 +117,19 @@ MAIN_CODE
     
     CLRF CCPR2H
     
-    ; Calcul de la fréquence
-    ; Fpwm = Fosc/(4 * (PR2+1) * prescaler)
-    ;      = 4MHz/(4 * 256 * 1)
-    ;	   = 1MHz / 1024
-    ;	  ~= 244 kHz
-    ;
-    ; PR2 = 255 nécessairement pour la résolution maximale
-    ; Prescaler = 1 pour avoir la fréquence maximale
-    
     loop
 	BSF ADCON0, GO ; Mise en route du convertisseur
 	poll
 	    BTFSC ADCON0,GO ; Test de fin de conversion
 	    BRA poll ; Si non fini, boucle
-	MOVFF ADRESH, CCPR2L ; Récupération des 8 bits les plus hauts
+	    
+	; Mapping de la valeur depuis [0, 255] vers [32, 156] (17% et 86%)
+	MOVLW 0x7c
+	MULWF ADRESH ; 124 * input
+	MOVF PRODH, 0 ; (124 * input) >> 8 = (124*input)/256
+	ADDLW 32 ; 32 + (124*input)/256 ? [32, 156]
+	    
+	MOVWF CCPR2L
 	
 	BRA loop
     END
