@@ -256,7 +256,7 @@ MAIN
 	; 1x : Bloc m�moire de l'oscillateur interne
     MOVWF OSCCON
     
-    MOVLW 0x0
+    MOVLW b'11110000'
     
     MOVWF TRISA ; Configuration de TRISA et TRISC
     MOVWF TRISC ; 4 bits de poids fort � 0 => acc�s aux 4 leds
